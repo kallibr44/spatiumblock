@@ -18,3 +18,5 @@ def main():
 
 if __name__ == '__main__':
     init()
+    public_key = db.get_key()
+    print("Аккаунт: %s"% public_key)

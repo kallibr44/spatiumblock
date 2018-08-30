@@ -35,10 +35,11 @@ def create_user(public_key):
     cursor.execute(sql, [public_key,private_key])
     connection.commit()
 
-def get_keys():
-    cursor.execute("SELECT public_key,private_key FROM client")
+def get_key():
+    cursor = connection.cursor()
+    cursor.execute("SELECT public_key FROM client")
     data = cursor.fetchone()
-    return data[0],data[1]
+    return data
 
 if __name__ == '__main__':
    init()
