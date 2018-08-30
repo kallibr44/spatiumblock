@@ -15,6 +15,17 @@ def init():
                    """)
     connection = conn
 
+def check_event(data):
+    string = data.split(":")
+    cursor = connection.cursor()
+    sql = "SELECT * FROM history WHERE id=?,from_id=?,message=?,date=?,to_id=?"
+    cursor.execute(sql,[string[1],string[2],string[3],string[4],string[5]])
+    result = cursor.fetchone()
+    if result != None:
+        print("Попытка взлома!")
+    else:
+        string = (str())
+        add_event()
 def add_event(string):
     data = string.split(":")
     cursor = connection.cursor()
