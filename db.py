@@ -41,10 +41,9 @@ def get_key():
     data = cursor.fetchone()
     return data
 
-if __name__ == '__main__':
-   init()
-   add_event("Я:пока:Вадим")
-   get_last_transaction()
-   time.sleep(1)
-   add_event("Вадим:пока:Я")
-   get_last_transaction()
+def get_transactions(wallet):
+    cursor = connection.cursor()
+    sql = """SELECT * FROM history WHERE from_id=?"""
+    cursor.execute(sql, [str(wallet)])
+    result = cursor.fetchall()
+    return result
