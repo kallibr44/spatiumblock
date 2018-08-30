@@ -15,6 +15,7 @@ def init():
                    """)
     connection = conn
 
+#здесь проверка новой транзакции на наличие в базе (временно)
 def check_event(data):
     string = data.split(":")
     cursor = connection.cursor()
@@ -25,33 +26,34 @@ def check_event(data):
         print("Попытка взлома!")
     else:
         string = (str())
-        add_event()
+        add_event(string)
+# добавляем новое событие в базу
 def add_event(string):
     data = string.split(":")
     cursor = connection.cursor()
     sql = """INSERT INTO history(from_id,message,to_id,date) VALUES(?,?,?,?)"""
     cursor.execute(sql, [data[0],data[1],data[2],str(int(time.time()))])
     connection.commit()
-
+#получить последнюю транзакцию из истроии в базе
 def get_last_transaction():
     cursor = connection.cursor()
     sql = "SELECT * FROM history ORDER BY ID DESC LIMIT 1"
     cursor.execute(sql)
     last_tx = cursor.fetchone()
     return last_tx
-
+#внесение данных пользователя в базу (используется единожды)
 def create_user(public_key):
     cursor = connection.cursor()
     sql= """INSERT INTO client(public_key) VALUES(?,?)"""
     cursor.execute(sql, [public_key,private_key])
     connection.commit()
-
+# возрващает публичный ключ пользователя
 def get_key():
     cursor = connection.cursor()
     cursor.execute("SELECT public_key FROM client")
     data = cursor.fetchone()
     return data
-
+# возрващает список транзакций, где from_id=wallet. wallet=public key
 def get_transactions(wallet):
     cursor = connection.cursor()
     sql = """SELECT * FROM history WHERE from_id=?"""

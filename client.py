@@ -1,14 +1,18 @@
-import json, os, sys, db, core, socks
+import json, os, sys, db, core, socket
 
 try:
     import readline
 except ImportError:
     import pyreadline as readline
+#берём адрес хоста
 host = socket.gethostbyname(socket.gethostname())
 port = 9090
+#инициализируем массив для сохранения входящих клиентов
 clients = []
+#список "стартовых" нод.
 base_node = [{'localhost',9090},]
 
+#ассинхронный поток для принятия входящих сообщений
 def receving(name, sock):
     while not shutdown:
         try:
@@ -26,14 +30,14 @@ def receving(name, sock):
                     pass
         except:
             pass
-
+#процедура первого подключения при старте (нужно доделать)
 def init_connection(sock):
     f = open(nodes)
     ff = f.readlines()
     for i in ff:
         try:
           sock.sendto(i)
-
+#конвертация unix timestamp в формат обычной даты
 def date(timestamp):
     import datetime
     return (
@@ -42,7 +46,7 @@ def date(timestamp):
         ).strftime('%Y-%m-%d %H:%M:%S')
     )
 
-
+#инициализирущая функция. сюда добавлять процедуры, которые нужно выполнить на старте программы.
 def init():
     try:
         db.init()
@@ -50,11 +54,16 @@ def init():
     except:
         print("Error loading database. Please, reinstall client.")
 
-
+#инициализация сокет-объекта
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind((host, port))
 s.setblocking(0)
-
+"""
+----------------------------------------------------------------------------------------------------
+Ниже идет главный код, все backend функции писать выше
+Все frontend функции писать ниже
+----------------------------------------------------------------------------------------------------
+"""
 init()
 public_key = db.get_key()
 exitt = 0
