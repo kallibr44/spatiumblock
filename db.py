@@ -27,7 +27,7 @@ def get_last_transaction():
     sql = "SELECT * FROM history ORDER BY ID DESC LIMIT 1"
     cursor.execute(sql)
     last_tx = cursor.fetchone()
-    print(last_tx)
+    return last_tx
 
 def create_user(public_key):
     cursor = connection.cursor()
