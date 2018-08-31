@@ -44,14 +44,19 @@ def get_last_transaction():
 #внесение данных пользователя в базу (используется единожды)
 def create_user(public_key):
     cursor = connection.cursor()
-    sql= """INSERT INTO client(public_key) VALUES(?,?)"""
+    sql= """INSERT INTO users(public_key) VALUES(?,?)"""
     cursor.execute(sql, [public_key,private_key])
     connection.commit()
 # возрващает публичный ключ пользователя
-def get_key():
+def get_key(wallet):
     cursor = connection.cursor()
-    cursor.execute("SELECT public_key FROM client")
+    sql = "SELECT public_key FROM users WHERE public_key=?"
+    cursor.execute(sql,[wallet])
     data = cursor.fetchone()
+    if data == None:
+        sql = "INSERT INTO users(public_key,balance) VALUES (?,?)"
+        cursor.execute(sql,[wallet,0])
+        connection.commit()
     return data
 # возрващает список транзакций, где from_id=wallet. wallet=public key
 def get_transactions(wallet):
