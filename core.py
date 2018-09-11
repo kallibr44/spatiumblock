@@ -1,5 +1,7 @@
 from Crypto.PublicKey import DSA
-from hashlib import sha256
+import hashlib, binascii
+
+
 def create_dsa_keys(code):
     key = DSA.generate(1024)
     encrypted_key = key.exportKey(
@@ -7,17 +9,21 @@ def create_dsa_keys(code):
         pkcs8=True,
         protection="PBKDF2WithHMAC-SHA1AndDES-EDE3-CBC"
     )
-    with open("private_rsa_key.bin", "wb") as f:
+    with open("private_dsa_key.bin", "wb") as f:
         f.write(encrypted_key)
-    with open("my_rsa_public.pem", "wb") as f:
+    with open("my_dsa_public.pem", "wb") as f:
         f.write(key.publickey().exportKey())
     return key.publickey().exportKey()
-code = "somecode"
-create_dsa_keys(code)
-def hach():
-    text=input('введите текст:')
-    with open('my_rsa_public.pem', 'r') as file:  # Путь к файлу который нужно прочесть
-        var = file.read()  # "Записываем" файл в переменную
-        a=var +text
-    b=sha256(a.encode()).hexdigest()
-    print(b)
+
+
+def hash(password, salt):
+    dk = hashlib.pbkdf2_hmac('sha256', b'password', b'salt', 100000)
+    # Взврат вычисленного значения
+    return binascii.hexlify(dk)
+
+
+# Для тестирования ниже примеры вызовов (далее использовать по назначению)
+# Вызов процедуры генерации ключей
+print(create_dsa_keys(input("Press random keys:\n")))
+# Вызов процедуры вычисления хэш-значения
+print(hash(input("Enter password:\n"), input("Enter salt:\n")))
