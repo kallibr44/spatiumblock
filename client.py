@@ -88,7 +88,7 @@ def sort_data(data,addr,sock):
             for i in list:
                 clients.append(i)
     elif data[0] == "ping":
-        sock.sendto(bytes("pong", encoding='utf-8'), addr)
+        sock.sendto(bytes("pong:", encoding='utf-8'), addr)
     elif data[0] == "pong":
         if addr not in clients:
             clients.append(addr)
