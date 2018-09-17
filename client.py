@@ -8,8 +8,8 @@ except ImportError:
 host = socket.gethostbyname(socket.gethostname())
 #host = 'localhost'
 #если клиент ключевой, порт указывать статический, если это обычный клиент, порт=0
-#port = 0
-port=9090
+port = 0
+#port=9090
 #инициализируем массив для сохранения входящих клиентов
 clients = []
 #список "стартовых" нод.
