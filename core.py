@@ -12,8 +12,8 @@ def create_dsa_keys(code):
     with open("private_dsa_key.bin", "wb") as f:
         f.write(encrypted_key)
     with open("my_dsa_public.pem", "wb") as f:
-        f.write(key.publickey().exportKey())
-    return key.publickey().exportKey()
+        f.write(key.publickey().exportKey('DSA'))
+    return key.publickey().exportKey('DSA')
 
 
 def hash(password, salt):
@@ -24,6 +24,7 @@ def hash(password, salt):
 
 # Для тестирования ниже примеры вызовов (далее использовать по назначению)
 # Вызов процедуры генерации ключей
-print(create_dsa_keys(input("Press random keys:\n")))
+#print(create_dsa_keys(input("Press random keys:\n")))
 # Вызов процедуры вычисления хэш-значения
-print(hash(input("Enter password:\n"), input("Enter salt:\n")))
+#print(hash(input("Enter password:\n"), input("Enter salt:\n")))
+

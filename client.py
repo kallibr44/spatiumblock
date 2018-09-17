@@ -5,11 +5,11 @@ try:
 except ImportError:
     import pyreadline as readline
 #берём адрес хоста
-#host = socket.gethostbyname(socket.gethostname())
-host = 'localhost'
+host = socket.gethostbyname(socket.gethostname())
+#host = 'localhost'
 #если клиент ключевой, порт указывать статический, если это обычный клиент, порт=0
-port = 0
-#port=9090
+#port = 0
+port=9090
 #инициализируем массив для сохранения входящих клиентов
 clients = []
 #список "стартовых" нод.
@@ -89,6 +89,7 @@ def sort_data(data,addr,sock):
                 clients.append(i)
     elif data[0] == "ping":
         sock.sendto(bytes("pong", encoding='utf-8'), addr)
+        print("New client!")
     elif data[0] == "pong":
         if addr not in clients:
             clients.append(addr)
@@ -108,7 +109,7 @@ def init_connection(sock):
         for i in base_node:
             # проходим стартовые ноды, если нету клиентов
             print(i)
-            text = bytes("get_peers:", encoding='utf-8')
+            text = bytes("ping:", encoding='utf-8')
             sock.sendto(text,i)
 
 #конвертация unix timestamp в формат обычной даты
