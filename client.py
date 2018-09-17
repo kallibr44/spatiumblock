@@ -101,7 +101,7 @@ def init_connection(sock):
      #ff=список с нодами
      for i in ff:
         try:
-          sock.sendto(bytes("ping",encoding='utf-8'),i)
+          sock.sendto(bytes("ping:",encoding='utf-8'),i)
           break
         except Exception:
             pass
