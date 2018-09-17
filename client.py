@@ -166,7 +166,7 @@ while exitt == 0:
         if choose == "1":
             text = input("введите сообщение: ")
             to = input("получатель: ")
-            string = (str(public_key[0]) + ":" + str(core.get_hash(str(text).encode('utf-8'))) + ":" + str(to))
+            string = (str(public_key[0]) + ":" + str(core.hash(text,"gueirhfg")) + ":" + str(to))
             try:
                 db.add_event(string)
                 print("Сообщение отправлено!")
