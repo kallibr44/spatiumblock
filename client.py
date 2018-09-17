@@ -13,7 +13,7 @@ port = 0
 #инициализируем массив для сохранения входящих клиентов
 clients = []
 #список "стартовых" нод.
-base_node = [('localhost',9090),]
+base_node = [('localhost',9090),('82.146.44.4',9090)]
 nodes = "node.json"
 shutdown = False
 #инициализация сокет-объекта
@@ -58,31 +58,40 @@ def receving(sock):
                 print("Запрос от "+str(addr) + " " + str(data.decode("utf-8")))
                 data = data.decode("utf-8")
                 data = data.split(":")
-                if data[0] == "new_event":
-                    db.check_event(data)
-                elif data[0] == "check_db":
-                    sock.sendto(str(db.get_last_transaction()),addr)
-                elif data[0] == "get_peers":
-                    if len(clients) == 0:
-                        sock.sendto("peers:None",addr)
-                    else:
-                        table = clients
-                        new_data = [{"type":"peers"},{table}]
-                        tex = pickle.dumps(new_data)
-                        sock.sendto(tex, addr)
-                elif data[0] == "peers":
-                    if data[1] == "None":
-                        print("Новых клиентов не найдено!")
-                        #init_connection(sock)
-                    else:
-                        list = data[1]
-                        for i in list:
-                            clients.append(i)
+                threading.Thread(target=sort_data,args=(data,addr,sock,)).start()
         except KeyboardInterrupt:
             shutdown = True
         except:
             pass
 
+#Здесь обработка входящего сообщения (ассинхронный процесс)
+def sort_data(data,addr,sock):
+    global clients
+    if data[0] == "new_event":
+        db.check_event(data)
+    elif data[0] == "check_db":
+        sock.sendto(str(db.get_last_transaction()), addr)
+    elif data[0] == "get_peers":
+        if len(clients) == 0:
+            sock.sendto("peers:None", addr)
+        else:
+            table = clients
+            new_data = [{"type": "peers"}, {table}]
+            tex = pickle.dumps(new_data)
+            sock.sendto(tex, addr)
+    elif data[0] == "peers":
+        if data[1] == "None":
+            print("Новых клиентов не найдено!")
+            # init_connection(sock)
+        else:
+            list = data[1]
+            for i in list:
+                clients.append(i)
+    elif data[0] == "ping":
+        sock.sendto(bytes("pong", encoding='utf-8'), addr)
+    elif data[0] == "pong":
+        if addr not in clients:
+            clients.append(addr)
 #процедура первого подключения при старте (нужно доделать)
 def init_connection(sock):
     try:
@@ -91,7 +100,7 @@ def init_connection(sock):
      #ff=список с нодами
      for i in ff:
         try:
-          sock.sendto(bytes("get_peers:",encoding='utf-8'),i)
+          sock.sendto(bytes("ping",encoding='utf-8'),i)
           break
         except Exception:
             pass

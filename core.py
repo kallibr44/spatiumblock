@@ -1,4 +1,4 @@
-from Crypto.PublicKey import DSA
+from crypto.PublicKey import DSA
 import hashlib, binascii
 
 
