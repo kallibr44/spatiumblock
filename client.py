@@ -8,12 +8,12 @@ except ImportError:
 host = socket.gethostbyname(socket.gethostname())
 #host = 'localhost'
 #если клиент ключевой, порт указывать статический, если это обычный клиент, порт=0
-#port = 0
-port=9090
+port = 0
+#port=9090
 #инициализируем массив для сохранения входящих клиентов
 clients = []
 #список "стартовых" нод.
-base_node = [('localhost',9090),('82.146.44.4',9090)]
+base_node = [('82.146.44.4', 9090),]
 nodes = "node.json"
 shutdown = False
 #инициализация сокет-объекта
@@ -89,7 +89,6 @@ def sort_data(data,addr,sock):
                 clients.append(i)
     elif data[0] == "ping":
         sock.sendto(bytes("pong", encoding='utf-8'), addr)
-        print("New client!")
     elif data[0] == "pong":
         if addr not in clients:
             clients.append(addr)
@@ -101,7 +100,7 @@ def init_connection(sock):
      #ff=список с нодами
      for i in ff:
         try:
-          sock.sendto(bytes("ping",encoding='utf-8'),i)
+          sock.sendto(bytes("ping:",encoding='utf-8'),i)
           break
         except Exception:
             pass
@@ -137,7 +136,7 @@ def init():
     except Exception as e:
         print("Error.")
         print(e)
-        sys.exit(1)
+        pass
 
 def get_status():
     if client_status == 0:
@@ -166,7 +165,7 @@ while exitt == 0:
         if choose == "1":
             text = input("введите сообщение: ")
             to = input("получатель: ")
-            string = (str(public_key[0]) + ":" + str(core.hash(text,"gueirhfg")) + ":" + str(to))
+            string = (str(public_key[0]) + ":" + str(core.get_hash(str(text).encode('utf-8'))) + ":" + str(to))
             try:
                 db.add_event(string)
                 print("Сообщение отправлено!")
