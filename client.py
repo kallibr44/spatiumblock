@@ -137,7 +137,7 @@ def init():
     except Exception as e:
         print("Error.")
         print(e)
-        sys.exit(1)
+        pass
 
 def get_status():
     if client_status == 0:
