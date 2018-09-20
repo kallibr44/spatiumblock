@@ -100,7 +100,7 @@ def sort_data(data, addr, sock):
             table = clients
             tex = str("peers:")
             for i in table:
-                tex = str(tex + str(i) + ",")
+                tex = str(tex + str(i)) + "  "
             sock.sendto(ttb(tex), addr)
     elif data[0] == "peers":
         if data[1] == "None":
@@ -109,7 +109,7 @@ def sort_data(data, addr, sock):
         else:
             list = data[1]
             print(list)
-            new_list = list.split(" ")
+            new_list = list.split("  ")
             for i in new_list:
                 clients.append(i)
         next_connection(sock)
