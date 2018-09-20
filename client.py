@@ -6,8 +6,8 @@ except ImportError:
     import pyreadline as readline
 import re,requests
 def GetMyIP():
-    text = requests.get('http://edonkey2000.com/').text()
-    return re.search(r'\d+\.\d+\.\d+\.\d+', text).group()
+    tex = requests.get('http://edonkey2000.com/')
+    return re.search(r'\d+\.\d+\.\d+\.\d+', tex.text).group()
 #берём адрес хоста
 #host = socket.gethostbyname(socket.gethostname())
 host = GetMyIP()
