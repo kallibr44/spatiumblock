@@ -111,7 +111,7 @@ def sort_data(data, addr, sock):
             print(list)
             new_list = list.split("  ")
             for i in new_list:
-                clients.append(i)
+                clients.append(tuple(i))
         next_connection(sock)
     elif data[0] == "ping":
         sock.sendto(bytes("pong:", encoding='utf-8'), addr)
