@@ -4,8 +4,13 @@ try:
     import readline
 except ImportError:
     import pyreadline as readline
+import re,requests
+def GetMyIP():
+    text = requests.get('http://edonkey2000.com/').text()
+    return re.search(r'\d+\.\d+\.\d+\.\d+', text).group()
 #берём адрес хоста
-host = socket.gethostbyname(socket.gethostname())
+#host = socket.gethostbyname(socket.gethostname())
+host = GetMyIP()
 #host = 'localhost'
 #если клиент ключевой, порт указывать статический, если это обычный клиент, порт=0
 port = 0
