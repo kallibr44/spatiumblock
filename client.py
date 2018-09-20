@@ -6,8 +6,13 @@ except ImportError:
     import pyreadline as readline
 import re,requests
 def GetMyIP():
-    tex = requests.get('http://ifconfig.me')
-    return re.search(r'\d+\.\d+\.\d+\.\d+', tex.text).group()
+    from netifaces import interfaces, ifaddresses, AF_INET
+    for ifaceName in interfaces():
+            addresses = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr': 'No IP addr'}])]
+            for address in addresses:
+                if (address != 'No IP addr') and (address != '127.0.0.1'):
+                    adres = (str(addresses)[2:-2])
+    return adres
 #берём адрес хоста
 #host = socket.gethostbyname(socket.gethostname())
 host = GetMyIP()
