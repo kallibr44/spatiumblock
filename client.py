@@ -38,8 +38,8 @@ def get_config(data):
     if data == "wallet":
         return str("test"+str(host))
 #коневртация в байты
-def text_to_byte(string):
-    return bytes(string)
+def ttb(string):
+    return bytes(string, encoding='utf-8')
 
 def byte_to_string(bytes):
     return str(bytes.encode("utf-8"))
@@ -49,7 +49,7 @@ def receving(sock):
     while not shutdown:
         try:
             global clients
-            while True:
+            while shutdown == False:
                 #ниже обработка входящих сообщений
                 all_data = bytearray()
                 while len(all_data) == 0:
@@ -80,28 +80,32 @@ def sort_data(data,addr,sock):
     if data[0] == "new_event":
         db.check_event(data)
     elif data[0] == "check_db":
-        sock.sendto(str(db.get_last_transaction()), addr)
+        sock.sendto(ttb(str(db.get_last_transaction())), addr)
     elif data[0] == "get_peers":
         if len(clients) == 0:
             sock.sendto("peers:None", addr)
         else:
             table = clients
-            new_data = [{"type": "peers"}, {table}]
-            tex = pickle.dumps(new_data)
-            sock.sendto(tex, addr)
+            tex = str("peers:")
+            for i in table:
+                tex = str(tex + str(i) + ",")
+            sock.sendto(ttb(tex), addr)
     elif data[0] == "peers":
         if data[1] == "None":
             print("Новых клиентов не найдено!")
             # init_connection(sock)
         else:
             list = data[1]
+            print(list)
             for i in list:
                 clients.append(i)
     elif data[0] == "ping":
         sock.sendto(bytes("pong:", encoding='utf-8'), addr)
     elif data[0] == "pong":
+        sock.sendto(ttb("get_peers:"),addr)
         if addr not in clients:
             clients.append(addr)
+
 #процедура первого подключения при старте (нужно доделать)
 def init_connection(sock):
     try:
@@ -205,6 +209,7 @@ while exitt == 0:
         if type == "N" or type == "n":
             pass
         else:
+            shutdown = True
             s.close()
             exit = 1
             sys.exit(0)
