@@ -83,7 +83,7 @@ def sort_data(data,addr,sock):
         sock.sendto(ttb(str(db.get_last_transaction())), addr)
     elif data[0] == "get_peers":
         if len(clients) == 0:
-            sock.sendto("peers:None", addr)
+            sock.sendto("peers::None", addr)
         else:
             table = {"peers::", json.dumps(clients)}
             sock.sendto(ttb(table), addr)
@@ -103,17 +103,17 @@ def sort_data(data,addr,sock):
     elif data[0] == "ping":
         sock.sendto(bytes("pong:", encoding='utf-8'), addr)
     elif data[0] == "pong":
-        sock.sendto(ttb("get_peers:"),addr)
+        sock.sendto(ttb("get_peers::"),addr)
         if addr not in clients:
             clients.append(addr)
     elif data[0] == "pingg":
-        sock.sendto(ttb("pongg:"),addr)
+        sock.sendto(ttb("pongg::"),addr)
 
 def next_connection(sock):
     for i in clients:
         # проходим стартовые ноды, если нету клиентов
         print(i)
-        text = bytes("pingg:", encoding='utf-8')
+        text = bytes("pingg::", encoding='utf-8')
         sock.sendto(text, i)
     print("Инициализация закончена!")
 
@@ -125,7 +125,7 @@ def init_connection(sock):
      #ff=список с нодами
      for i in ff:
         try:
-          sock.sendto(bytes("ping:",encoding='utf-8'),i)
+          sock.sendto(bytes("ping::",encoding='utf-8'),i)
           break
         except Exception:
             pass
@@ -133,7 +133,7 @@ def init_connection(sock):
         for i in base_node:
             # проходим стартовые ноды, если нету клиентов
             print(i)
-            text = bytes("ping:", encoding='utf-8')
+            text = bytes("ping::", encoding='utf-8')
             sock.sendto(text,i)
 
 #конвертация unix timestamp в формат обычной даты
