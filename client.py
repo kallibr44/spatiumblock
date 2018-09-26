@@ -40,12 +40,16 @@ def get_config(data):
 #коневртация в байты
 def ttb(string):
     return bytes(string, encoding='utf-8')
+
 def new_client(addr):
  chk = 0
+ t = 0
  if addr[0] != host:
   for i in clients:
    if i[0] == addr[0]:
+     clients[t] = addr
      chk = 1
+   t +=1
   if chk == 0:
      clients.append(addr)
      print("Новый клиент " + addr)
