@@ -41,13 +41,14 @@ def get_config(data):
 def ttb(string):
     return bytes(string, encoding='utf-8')
 def new_client(addr):
-                            chk = 0
-                            for i in clients:
-                              if i[0] == addr[0]:
-                                  chk = 1
-                            if chk == 1:
-                                clients.append(addr)
-                                print("Новый клиент " + addr)
+ chk = 0
+ if addr[0] != host:
+  for i in clients:
+   if i[0] == addr[0]:
+     chk = 1
+  if chk == 0:
+     clients.append(addr)
+     print("Новый клиент " + addr)
 
 def byte_to_string(bytes):
     return str(bytes.encode("utf-8"))
@@ -107,8 +108,6 @@ def sort_data(data,addr,sock):
         sock.sendto(bytes("pong::", encoding='utf-8'), addr)
     elif data[0] == "pong":
         sock.sendto(ttb("get_peers::"),addr)
-        if addr not in clients:
-            clients.append(addr)
     elif data[0] == "pingg":
         sock.sendto(ttb("pongg::"),addr)
 
