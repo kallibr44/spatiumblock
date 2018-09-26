@@ -88,7 +88,7 @@ def sort_data(data,addr,sock):
         sock.sendto(ttb(str(db.get_last_transaction())), addr)
     elif data[0] == "get_peers":
         if len(clients) == 0:
-            sock.sendto("peers::None", addr)
+            sock.sendto(ttb("peers::None"), addr)
         else:
             table = "peers::"
             for i in clients:
