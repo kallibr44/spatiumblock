@@ -40,6 +40,14 @@ def get_config(data):
 #коневртация в байты
 def ttb(string):
     return bytes(string, encoding='utf-8')
+def new_client(addr):
+                            chk = 0
+                            for i in clients:
+                              if i[0] == addr[0]:
+                                  chk = 1
+                            if chk = 1:
+                                clients.append(addr)
+                                print("Новый клиент " + addr)
 
 def byte_to_string(bytes):
     return str(bytes.encode("utf-8"))
@@ -55,16 +63,12 @@ def receving(sock):
                 while len(all_data) == 0:
                     try:
                         data, addr = sock.recvfrom(2048)
-                        if addr not in clients:
-                            clients.append(addr)
                         if not data:
                             break
                         all_data = all_data + data
+                        new_client(addr)
                     except:
                         pass
-                if addr[0] not in clients:
-                    clients.append(addr)
-                    print("Новый клиент " + addr)
                 print("Запрос от "+str(addr) + " " + str(data.decode("utf-8")))
                 data = data.decode("utf-8")
                 data = data.split("::")
