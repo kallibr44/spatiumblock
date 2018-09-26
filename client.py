@@ -62,7 +62,7 @@ def receving(sock):
                         all_data = all_data + data
                     except:
                         pass
-                if addr[0] not in clients[][0]:
+                if addr[0] not in clients:
                     clients.append(addr)
                     print("Новый клиент " + addr)
                 print("Запрос от "+str(addr) + " " + str(data.decode("utf-8")))
