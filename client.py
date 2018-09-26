@@ -45,7 +45,7 @@ def new_client(addr):
                             for i in clients:
                               if i[0] == addr[0]:
                                   chk = 1
-                            if chk = 1:
+                            if chk == 1:
                                 clients.append(addr)
                                 print("Новый клиент " + addr)
 
