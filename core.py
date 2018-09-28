@@ -12,19 +12,23 @@ def create_dsa_keys(code):
     with open("private_dsa_key.bin", "wb") as f:
         f.write(encrypted_key)
     with open("my_dsa_public.pem", "wb") as f:
-        f.write(key.publickey().exportKey('DSA'))
-    return key.publickey().exportKey('DSA')
+        f.write(key.publickey().exportKey())
+    return key.publickey().exportKey()
 
 
-def hash(password, salt):
+def password_encryption(password, salt):
     dk = hashlib.pbkdf2_hmac('sha256', b'password', b'salt', 100000)
-    # Взврат вычисленного значения
+    # Взврат зафированного пароля
     return binascii.hexlify(dk)
 
 
+def hash(data):
+    return hashlib.sha1(bytes(str(data), encoding='utf-8')).hexdigest()
+
 # Для тестирования ниже примеры вызовов (далее использовать по назначению)
 # Вызов процедуры генерации ключей
-#print(create_dsa_keys(input("Press random keys:\n")))
-# Вызов процедуры вычисления хэш-значения
-#print(hash(input("Enter password:\n"), input("Enter salt:\n")))
-
+# print(create_dsa_keys(input("Press random keys:\n")))
+# Вызов шифрования пароля
+# print(password_encryption(input("Enter password:\n"), input("Enter salt:\n")))
+# Получение значения хэша от входных данных
+# print(hash("spatiumblock"))
