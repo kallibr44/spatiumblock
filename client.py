@@ -1,4 +1,4 @@
-import json, os, sys, db, core, socket,threading,pickle,time
+import json, os, sys, db, core, socket,threading,pickle
 
 try:
     import readline
@@ -13,52 +13,40 @@ def GetMyIP():
                 if (address != 'No IP addr') and (address != '127.0.0.1'):
                     adres = (str(addresses)[2:-2])
     return adres
-lock = threading.Lock()
 #берём адрес хоста
+#host = socket.gethostbyname(socket.gethostname())
 host = GetMyIP()
+#host = 'localhost'
+#если клиент ключевой, порт указывать статический, если это обычный клиент, порт=0
+port = 0
+#port=9090
 #инициализируем массив для сохранения входящих клиентов
 clients = []
 #список "стартовых" нод.
-base_node = [('95.179.166.136', 9090),]
+base_node = [('82.146.44.4', 9090),]
 nodes = "node.json"
 shutdown = False
 #инициализация сокет-объекта
-#s1=входящий сокет
-s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s1.bind((host, 9090))
-s1.setblocking(0)
-#s2=исходящий сокет
-s2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s2.bind((host,0))
-s1.setblocking(0)
+print(host)
+print(port)
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind((host, port))
+s.setblocking(0)
 # статус клиента: 0-запуск клиента, 1-работа в оффлайн режиме, 2-подключен к сети
 client_status = 0
-exit = 0
-
 def get_config(data):
     if data == "wallet":
         return str("test"+str(host))
 #коневртация в байты
 def ttb(string):
     return bytes(string, encoding='utf-8')
-def check_user(ip):
-    global clients
-    check = 0
-    for i in clients:
-        if i[0] == ip[0]:
-            check = 1
-    if check == 0:
-        clients.append(ip)
-    else:
-        pass
 
 def byte_to_string(bytes):
     return str(bytes.encode("utf-8"))
-
 #ассинхронный поток для принятия входящих сообщений
 def receving(sock):
     global shutdown
-    while shutdown == False:
+    while not shutdown:
         try:
             global clients
             while True:
@@ -67,27 +55,28 @@ def receving(sock):
                 while len(all_data) == 0:
                     try:
                         data, addr = sock.recvfrom(2048)
-                        check_user(addr)
+                        if addr not in clients:
+                            clients.append(addr)
                         if not data:
                             break
                         all_data = all_data + data
                     except:
                         pass
+                if addr not in clients:
+                    clients.append(addr)
+                    print("Новй клиент " + addr)
                 print("Запрос от "+str(addr) + " " + str(data.decode("utf-8")))
                 data = data.decode("utf-8")
                 data = data.split("::")
-                threading.Thread(target=sort_data, args=(data, addr,sock,)).start()
+                threading.Thread(target=sort_data,args=(data,addr,sock,)).start()
         except KeyboardInterrupt:
             shutdown = True
         except:
             pass
-    exit = 1
-print(s1)
-print("------------------------------")
-print(s2)
+
 #Здесь обработка входящего сообщения (ассинхронный процесс)
 def sort_data(data,addr,sock):
-    global clients,c
+    global clients
     if data[0] == "new_event":
         db.check_event(data)
     elif data[0] == "check_db":
@@ -108,21 +97,16 @@ def sort_data(data,addr,sock):
             list = data[1][:-2]
             new_list = list.split(",,")
             for i in new_list:
-                if i not in clients:
-                 clients.append(eval(i))
+                clients.append(eval(i))
         next_connection(sock)
     elif data[0] == "ping":
         sock.sendto(bytes("pong::", encoding='utf-8'), addr)
     elif data[0] == "pong":
-        c = 1
         sock.sendto(ttb("get_peers::"),addr)
         if addr not in clients:
             clients.append(addr)
     elif data[0] == "pingg":
         sock.sendto(ttb("pongg::"),addr)
-    elif data[0] == "quit":
-        clients.remove(addr)
-        print("Отключился клиент {0}".format(addr))
 
 def next_connection(sock):
     for i in clients:
@@ -147,12 +131,9 @@ def init_connection(sock):
     except FileNotFoundError:
         for i in base_node:
             # проходим стартовые ноды, если нету клиентов
-            if i[0] != host or  i[0] != 'localhost' or i[0] != '':
-             text = bytes("ping::", encoding='utf-8')
-             try:
-              sock.sendto(text,i)
-             except:
-                pass
+            print(i)
+            text = bytes("ping::", encoding='utf-8')
+            sock.sendto(text,i)
 
 #конвертация unix timestamp в формат обычной даты
 def date(timestamp):
@@ -173,9 +154,9 @@ def init():
         print("Error loading database. Please, reinstall client.")
     client_status = 1
     try:
-        threading.Thread(target=receving, args=(s1,)).start()
-        threading.Thread(target=receving, args=(s2,)).start()
-        init_connection(s2)
+        rT = threading.Thread(target=receving, args=(s,))
+        rT.start()
+        init_connection(s)
     except Exception as e:
         print("Error.")
         print(e)
@@ -203,7 +184,6 @@ while exitt == 0:
     try:
         print("Аккаунт: %s\n----------" % public_key)
         print("Статус клиента: %s" % str(get_status()))
-        print("IP: {0}".format(host))
         choose = input(
             "1. Отправить сообщение\n2.Посмотреть последнюю транзакцию\n3.Посмотреть историю транзакций\n4. Посмотреть список клиентов\n--> ")
         if choose == "1":
@@ -240,21 +220,6 @@ while exitt == 0:
             pass
         else:
             shutdown = True
-            print("1")
-            for i in clients:
-                print(i)
-                text = bytes("quit::", encoding='utf-8')
-                try:
-                    s2.sendto(text, (i[0], 9090))
-                except:
-                    pass
-            s1.close()
-            s2.close()
-            print("2")
+            s.close()
             exit = 1
-            print("3")
-            time.sleep(2)
-            print("4")
-            while exit == 0:
-                pass
             sys.exit(0)
