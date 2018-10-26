@@ -34,6 +34,7 @@ shutdown = False
 #s1=входящий сокет
 s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+# пытаемся убить сокет, если он уже активен. Если соект не активен, то иницализируем
 try:
     s1.close()
     s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -45,7 +46,9 @@ s1.settimeout(1)
 s1.setblocking(0)
 #s2=исходящий сокет
 s2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# SO_REUSEADDR это ознаает, что на адрес можно подключиться снова даже если он активен
 s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+# пытаемся убить сокет, если он уже активен. Если соект не активен, то иницализируем
 try:
     s2.close()
     s2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
