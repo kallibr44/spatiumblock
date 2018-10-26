@@ -33,11 +33,15 @@ shutdown = False
 #инициализация сокет-объекта
 #s1=входящий сокет
 s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s1.bind((host, 9090))
+s1.settimeout(1)
 s1.setblocking(0)
 #s2=исходящий сокет
 s2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s2.bind((host,0))
+s2.settimeout(1)
 s2.setblocking(0)
 # статус клиента: 0-запуск клиента, 1-работа в оффлайн режиме, 2-подключен к сети
 client_status = 0
@@ -54,10 +58,14 @@ def check_user(ip):
     check = 0
     for i in clients:
         if i[0] == ip[0]:
+         if i[1] != ip[1]:
+            ii = clients.index(i)
+            clients.remove(ii)
+            clients.append(ip)
             check = 1
-        elif i[0] == host:
+        elif i[0] == str(host):
             check = 1
-    if ip[0] == host:
+    if ip[0] == str(host):
         check = 1
     if check == 0:
         clients.append(ip)
@@ -85,7 +93,8 @@ def receving(sock):
                         """
                         print('\nСвязь установлена!')
                         global client_status
-                        client_status = 2
+                        if client_status != 2:
+                         client_status = 2
                         #|||
                         if addr[0] != host:
                          check_user(addr)
@@ -141,8 +150,11 @@ def sort_data(data,addr,sock):
     elif data[0] == "pingg":
         sock.sendto(ttb("pongg::"),addr)
     elif data[0] == "quit":
-        clients.remove(addr)
-        print("Отключился клиент {0}".format(addr))
+        try:
+         clients.remove(addr)
+         print("Отключился клиент {0}".format(addr))
+        except Exception:
+         print("Ошибка. Пользователя нет в базе!")
 
 def next_connection(sock):
     for i in clients:
