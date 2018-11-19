@@ -1,4 +1,5 @@
 import json, os, sys, db, core, socket, threading, pickle, time
+import natpmp
 
 try:
     import readline
@@ -57,6 +58,8 @@ def check_user(ip):
     global clients
     check = 0
     for i in clients:
+        if ip[0] == host:
+            break
         if i[0] == ip[0]:
          if i[1] != ip[1]:
             ii = clients.index(i)
@@ -198,6 +201,7 @@ def date(timestamp):
 #инициализирующая функция. сюда добавлять процедуры, которые нужно выполнить на старте программы.
 def init():
     global client_status
+    #natpmp.map_udp_port(9090,9090)
     try:
         db.init()
         print("Database loaded!")
@@ -207,7 +211,7 @@ def init():
     try:
         threading.Thread(target=receving, args=(s1,)).start()
         threading.Thread(target=receving, args=(s2,)).start()
-        init_connection(s2)
+        init_connection(s1)
     except Exception as e:
         print("Error.")
         print(e)
@@ -296,11 +300,12 @@ while exitt == 0:
                 print(i)
                 text = bytes("quit::", encoding='utf-8')
                 try:
-                    s2.sendto(text, (i[0], 9090))
+                    s1.sendto(text, (i[0], 9090))
                 except:
                     pass
             s1.close()
             s2.close()
+            natpmp.map_udp_port(9090,9090,0)
             print("2")
             exit = 1
             print("3")
