@@ -1,71 +1,92 @@
 import json, os, sys, db, core, socket, threading, pickle, time
-import natpmp
+
 
 try:
     import readline
 except ImportError:
     import pyreadline as readline
-import re,requests
+import re, requests
+
+
 def GetMyIP():
     from netifaces import interfaces, ifaddresses, AF_INET
     for ifaceName in interfaces():
-            addresses = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr': 'No IP addr'}])]
-            for address in addresses:
-                if (address != 'No IP addr') and (address != '127.0.0.1'):
-                    adres = (str(addresses)[2:-2])
+        addresses = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr': 'No IP addr'}])]
+        for address in addresses:
+            if (address != 'No IP addr') and (address != '127.0.0.1'):
+                adres = (str(addresses)[2:-2])
     return adres
+
+
 lock = threading.Lock()
-#берём адрес хоста
+# берём адрес хоста
 host = GetMyIP()
-#инициализируем массив для сохранения входящих клиентов
+bind_host = host
+# инициализируем массив для сохранения входящих клиентов
 clients = []
-#список "стартовых" нод. |||Сделал по больше, для запаса|||
+# список "стартовых" нод. |||Сделал по больше, для запаса|||
 base_node = [
-            ('95.179.166.136', 9090),
-            ('185.159.82.212', 9090),
-            ('95.27.183.90', 9090),
-            ('192.168.1.65', 9090),
-            ('192.168.1.66', 9090),
-            ('78.46.254.48', 9090),
-            ('82.146.44.4', 9090),]
+    ('95.179.166.136', 9090),
+    ('185.159.82.212', 65535),
+    ('95.27.183.90', 9090),
+    ('192.168.1.65', 9090),
+    ('192.168.1.66', 9090),
+    ('78.46.254.48', 9090),
+    ('82.146.44.4', 9090), ]
 
 nodes = "node.json"
 shutdown = False
-#инициализация сокет-объекта
-#s1=входящий сокет
+# инициализация сокет-объекта
+# s1=входящий сокет
 s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s1.bind((host, 9090))
 s1.settimeout(1)
 s1.setblocking(0)
-#s2=исходящий сокет
 s2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s2.bind((host,0))
+s2.bind((host, 0))
 s2.settimeout(1)
 s2.setblocking(0)
 # статус клиента: 0-запуск клиента, 1-работа в оффлайн режиме, 2-подключен к сети
 client_status = 0
 exit = 0
+ip_check = 0
+
 
 def get_config(data):
     if data == "wallet":
-        return str("test"+str(host))
-#коневртация в байты
+        return str("test" + str(host))
+
+
+# коневртация в байты
 def ttb(string):
     return bytes(string, encoding='utf-8')
+
+
 def check_user(ip):
     global clients
     check = 0
+    print("+-" * 10)
+    print(ip[0])
+    print(host)
+    print("+-" * 10)
+    if str(ip[0]) == str(host):
+        print("{0} является хостом".format(ip))
     for i in clients:
-        if ip[0] == host:
+        print("Проверяем {0}:{1} с входящим {2}:{3}".format(i[0], i[1], ip[0], ip[1]))
+        if str(ip[0]) == str(host):
+            print("{0} является хостом".format(ip))
+            check = 1
             break
         if i[0] == ip[0]:
-         if i[1] != ip[1]:
-            ii = clients.index(i)
-            clients.remove(ii)
-            clients.append(ip)
+            print("{0} есть совпадения в базе!".format(ip))
             check = 1
+            if i[1] != ip[1]:
+                print("{0} есть идентичная запись!!".format(ip))
+                ii = clients.index(i)
+                clients.remove(ii)
+                clients.append(ip)
         elif i[0] == str(host):
             check = 1
     if ip[0] == str(host):
@@ -75,17 +96,19 @@ def check_user(ip):
     else:
         pass
 
+
 def byte_to_string(bytes):
     return str(bytes.encode("utf-8"))
 
-#ассинхронный поток для принятия входящих сообщений
+
+# ассинхронный поток для принятия входящих сообщений
 def receving(sock):
-    global shutdown,exit
+    global shutdown, exit
     while shutdown == False:
         try:
             global clients
             while True:
-                #ниже обработка входящих сообщений
+                # ниже обработка входящих сообщений
                 all_data = bytearray()
                 while len(all_data) == 0:
                     try:
@@ -97,29 +120,30 @@ def receving(sock):
                         print('\nСвязь установлена!')
                         global client_status
                         if client_status != 2:
-                         client_status = 2
-                        #|||
+                            client_status = 2
+                        # |||
                         if addr[0] != host:
-                         check_user(addr)
+                            check_user(addr)
                         if not data:
                             break
                         all_data = all_data + data
                     except:
                         pass
                 if addr[0] != host:
-                 print("Запрос от "+str(addr) + " " + str(data.decode("utf-8")))
-                 data = data.decode("utf-8")
-                 data = data.split("::")
-                 threading.Thread(target=sort_data, args=(data, addr,sock,)).start()
+                    print("Запрос от " + str(addr) + " " + str(data.decode("utf-8")))
+                    data = data.decode("utf-8")
+                    data = data.split("::")
+                    threading.Thread(target=sort_data, args=(data, addr, sock,)).start()
         except KeyboardInterrupt:
             shutdown = True
         except:
             pass
     exit = 1
 
-#Здесь обработка входящего сообщения (ассинхронный процесс)
-def sort_data(data,addr,sock):
-    global clients,c
+
+# Здесь обработка входящего сообщения (ассинхронный процесс)
+def sort_data(data, addr, sock):
+    global clients, c, ip_check, host
     if data[0] == "new_event":
         db.check_event(data)
     elif data[0] == "check_db":
@@ -130,7 +154,7 @@ def sort_data(data,addr,sock):
         else:
             table = "peers::"
             for i in clients:
-             table= str(table + str(i) + ",,")
+                table = str(table + str(i) + ",,")
             sock.sendto(ttb(table), addr)
     elif data[0] == "peers":
         if data[1] == "None":
@@ -141,55 +165,72 @@ def sort_data(data,addr,sock):
             new_list = list.split(",,")
             for i in new_list:
                 if i not in clients:
-                 check_user(eval(i))
+                    check_user(eval(i))
         next_connection(sock)
     elif data[0] == "ping":
         sock.sendto(bytes("pong::", encoding='utf-8'), addr)
     elif data[0] == "pong":
         c = 1
-        sock.sendto(ttb("get_peers::"),addr)
+        if ip_check == 0:
+            sock.sendto(ttb("get_ip::"), addr)
+        sock.sendto(ttb("get_peers::"), addr)
         if addr not in clients:
             clients.append(addr)
     elif data[0] == "pingg":
-        sock.sendto(ttb("pongg::"),addr)
+        sock.sendto(ttb("pongg::"), addr)
     elif data[0] == "quit":
         try:
-         clients.remove(addr)
-         print("Отключился клиент {0}".format(addr))
+            clients.remove(addr)
+            print("Отключился клиент {0}".format(addr))
         except Exception:
-         print("Ошибка. Пользователя нет в базе!")
+            print("Ошибка. Пользователя нет в базе!")
+    elif data[0] == "ip":
+        host = data[1]
+        port = data[2]
+        s2.close()
+        s2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s2.bind((bind_host, int(port)))
+        s2.settimeout(1)
+        s2.setblocking(0)
+        ip_check = 1
+    elif data[0] == "get_ip":
+        sock.sendto(ttb("ip::{0}".format(addr[0])), addr)
+
 
 def next_connection(sock):
     for i in clients:
-       if type(i) == tuple:
-        # проходим стартовые ноды, если нету клиентов
-        text = bytes("pingg::", encoding='utf-8')
-        sock.sendto(text, i)
+        if type(i) == tuple:
+            # проходим стартовые ноды, если нету клиентов
+            text = bytes("pingg::", encoding='utf-8')
+            sock.sendto(text, i)
     print("Инициализация закончена!")
 
-#процедура первого подключения при старте (нужно доделать)
+
+# процедура первого подключения при старте (нужно доделать)
 def init_connection(sock):
     try:
-     f = open(nodes)
-     ff = f.readlines()
-     #ff=список с нодами
-     for i in ff:
-        try:
-          sock.sendto(bytes("ping::",encoding='utf-8'),i)
-          break
-        except Exception:
-            pass
+        f = open(nodes)
+        ff = f.readlines()
+        # ff=список с нодами
+        for i in ff:
+            try:
+                sock.sendto(bytes("ping::", encoding='utf-8'), i)
+                break
+            except Exception:
+                pass
     except FileNotFoundError:
         for i in base_node:
             # проходим стартовые ноды, если нету клиентов
-            if i[0] != host or  i[0] != 'localhost' or i[0] != '':
-             text = bytes("ping::", encoding='utf-8')
-             try:
-              sock.sendto(text,i)
-             except:
-                pass
+            if i[0] != host or i[0] != 'localhost' or i[0] != '':
+                text = bytes("ping::", encoding='utf-8')
+                try:
+                    sock.sendto(text, i)
+                except:
+                    pass
 
-#конвертация unix timestamp в формат обычной даты
+
+# конвертация unix timestamp в формат обычной даты
 def date(timestamp):
     import datetime
     return (
@@ -198,10 +239,10 @@ def date(timestamp):
         ).strftime('%Y-%m-%d %H:%M:%S')
     )
 
-#инициализирующая функция. сюда добавлять процедуры, которые нужно выполнить на старте программы.
+
+# инициализирующая функция. сюда добавлять процедуры, которые нужно выполнить на старте программы.
 def init():
     global client_status
-    #natpmp.map_udp_port(9090,9090)
     try:
         db.init()
         print("Database loaded!")
@@ -217,6 +258,7 @@ def init():
         print(e)
         pass
 
+
 def get_status():
     if client_status == 0:
         return "Оффлайн"
@@ -224,6 +266,7 @@ def get_status():
         return "Поиск пиров..."
     elif client_status == 2:
         return "Подключен к сети"
+
 
 """
 ----------------------------------------------------------------------------------------------------
@@ -241,11 +284,11 @@ while exitt == 0:
         print("Статус клиента: %s" % str(get_status()))
         print("IP: {0}".format(host))
 
-        #|||Сделал для удобства и юольшей читабельности. Добавлен 5 пункт который прописан ниже.|||
-        message = "1.Отправить сообщение\n" +\
-                  "2.Посмотреть последнюю транзакцию\n" +\
-                  "3.Посмотреть историю транзакций\n" +\
-                  "4.Посмотреть список клиентов\n" +\
+        # |||Сделал для удобства и юольшей читабельности. Добавлен 5 пункт который прописан ниже.|||
+        message = "1.Отправить сообщение\n" + \
+                  "2.Посмотреть последнюю транзакцию\n" + \
+                  "3.Посмотреть историю транзакций\n" + \
+                  "4.Посмотреть список клиентов\n" + \
                   "5.Проверить последнюю транзакцию\n"
 
         choose = input(message + ': ')
@@ -253,7 +296,7 @@ while exitt == 0:
         if choose == "1":
             text = input("Введите сообщение: ")
             to = input("Получатель: ")
-            string = (str(public_key[0]) + ":" + str(core.hash(text,"ergergerfgbfjhrtgaer")) + ":" + str(to))
+            string = (str(public_key[0]) + ":" + str(core.hash(text)) + ":" + str(to))
             try:
                 db.add_event(string)
                 print("Сообщение отправлено!")
@@ -262,9 +305,9 @@ while exitt == 0:
         elif choose == "2":
             last_tx = db.get_last_transaction()
             if last_tx is not None:
-             print(
-                "Последняя транзакция:\nid {0}\nОт кого: {1}\nсообщение: {2}\nКому: {3}\nДата: {4}\n----------------\n".format(
-                    last_tx[0], last_tx[1], last_tx[2], last_tx[3], date(last_tx[4])))
+                print(
+                    "Последняя транзакция:\nid {0}\nОт кого: {1}\nсообщение: {2}\nКому: {3}\nДата: {4}\n----------------\n".format(
+                        last_tx[0], last_tx[1], last_tx[2], last_tx[3], date(last_tx[4])))
             else:
                 print("Транзакций не найдено!")
         elif choose == "3":
@@ -278,7 +321,7 @@ while exitt == 0:
             for i in clients:
                 print("\n-------\n{0}".format(i))
 
-        #|||Проверка истинности последней транзакции начинается здесь.|||
+        # |||Проверка истинности последней транзакции начинается здесь.|||
         elif choose == "5":
             last_tx = db.get_last_transaction()
             if last_tx is not None:
@@ -300,12 +343,12 @@ while exitt == 0:
                 print(i)
                 text = bytes("quit::", encoding='utf-8')
                 try:
-                    s1.sendto(text, (i[0], 9090))
+                    s1.sendto(text, i)
+                    s2.sendto(text, i)
                 except:
                     pass
             s1.close()
             s2.close()
-            natpmp.map_udp_port(9090,9090,0)
             print("2")
             exit = 1
             print("3")
