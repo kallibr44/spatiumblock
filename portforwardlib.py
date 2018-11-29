@@ -24,7 +24,7 @@ def discover():
     SSDP_MX = 2
     SSDP_ST = "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
 
-    WAIT = 0.5
+    WAIT = 3
 
     ssdpRequest = "M-SEARCH * HTTP/1.1\r\n" + \
                     "HOST: %s:%d\r\n" % (SSDP_ADDR, SSDP_PORT) + \
@@ -33,7 +33,7 @@ def discover():
                     "ST: %s\r\n" % (SSDP_ST, ) + "\r\n"
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setblocking(0)
+    #sock.setblocking(0)
     sock.sendto(ssdpRequest.encode(), (SSDP_ADDR, SSDP_PORT))
     time.sleep(WAIT)
     paths = []
@@ -54,8 +54,9 @@ def discover():
 
         except socket.error as e:
             #print('''no data yet''')
-            #print(e)
+            print(e)
             pass
+        time.sleep(0.1)
     print(len(paths))
     print("Path: {0}".format(paths))
     return paths
