@@ -24,7 +24,7 @@ def discover():
     SSDP_MX = 2
     SSDP_ST = "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
 
-    WAIT = 2
+    WAIT = 1
 
     ssdpRequest = "M-SEARCH * HTTP/1.1\r\n" + \
                     "HOST: %s:%d\r\n" % (SSDP_ADDR, SSDP_PORT) + \
