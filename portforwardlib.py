@@ -24,7 +24,7 @@ def discover():
     SSDP_MX = 2
     SSDP_ST = "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
 
-    WAIT = 3
+    WAIT = 2
 
     ssdpRequest = "M-SEARCH * HTTP/1.1\r\n" + \
                     "HOST: %s:%d\r\n" % (SSDP_ADDR, SSDP_PORT) + \
@@ -37,8 +37,8 @@ def discover():
     sock.sendto(ssdpRequest.encode(), (SSDP_ADDR, SSDP_PORT))
     time.sleep(WAIT)
     paths = []
-
-    while len(paths) == 0:
+    data = bytearray()
+    while len(data) == 0:
         try:
             data, fromaddr = sock.recvfrom(1024)
             ip = fromaddr[0]
@@ -53,7 +53,7 @@ def discover():
             paths.append(router_path)
 
         except socket.error as e:
-            #print('''no data yet''')
+            print('''no data yet''')
             print(e)
             pass
         time.sleep(0.1)
@@ -191,9 +191,21 @@ def forwardPort(eport, iport, router, lanip, disable, protocol, time, descriptio
 
     if verbose:
         print("Обнаружение маршрутизаторов...")
-
-    res = discover()
-
+    res = []
+    try:
+        with open('route.txt') as f:
+            lines = f.read()
+            
+            if len(lines) < 1:
+                print('error')
+            else:
+                res = [lines]
+    except FileNotFoundError or EOFError:
+        print('error')
+        res = discover()
+        with open('route.txt','wt') as f:
+            f.write(res[0])
+    print("Роутер найден!")
 
     allok = True
     for path in res:
@@ -219,9 +231,11 @@ def forwardPort(eport, iport, router, lanip, disable, protocol, time, descriptio
 
             if verbose:
                 print(("%sПорт перенаправлен: %s успешно, %s -> %s:%s"%(dis,routerip, eport,localip,iport)))
+                print("Пытаюсь выключить порт...")
         else:
             sys.stderr.write("%sПеренаправление на %s произошло с ошибкой, статус=%s сообщение=%s\n"%(dis,routerip,status,message))
             allok = False
+
 
 
     return allok
