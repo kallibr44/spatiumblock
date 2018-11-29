@@ -1,4 +1,4 @@
-from Crypto.PublicKey import DSA
+from Cryptodome.PublicKey import DSA
 import hashlib, binascii
 
 
@@ -24,6 +24,11 @@ def password_encryption(password, salt):
 
 def hash(data):
     return hashlib.sha1(bytes(str(data), encoding='utf-8')).hexdigest()
+
+#Хеш последней транзакции
+def hash_transaction(transaction):
+    hash_object = hashlib.sha256(bytes(transaction,'utf-8')).hexdigest()
+    return hash_object
 
 # Для тестирования ниже примеры вызовов (далее использовать по назначению)
 # Вызов процедуры генерации ключей
